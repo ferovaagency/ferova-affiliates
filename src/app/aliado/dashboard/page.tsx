@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { formatCOP, whatsappLink } from '@/lib/utils'
@@ -73,10 +74,58 @@ export default async function AliadorDashboard() {
           Prospecto asignado
         </p>
         {asignacionActiva?.prospectos ? (
-          <ProspectoCard
-            asignacion={asignacionActiva}
-            prospecto={asignacionActiva.prospectos as any}
-          />
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    {(asignacionActiva.prospectos as any).nombre}
+                  </p>
+                  {(asignacionActiva.prospectos as any).empresa && (
+                    <p className="text-sm text-gray-500">
+                      {(asignacionActiva.prospectos as any).empresa}
+                    </p>
+                  )}
+                </div>
+                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                  Activo
+                </span>
+              </div>
+              {(asignacionActiva.prospectos as any).notas && (
+                <div className="bg-gray-50 rounded-xl p-3 mb-3">
+                  <p className="text-xs text-gray-500 mb-1">Notas</p>
+                  <p className="text-sm text-gray-700">
+                    {(asignacionActiva.prospectos as any).notas}
+                  </p>
+                </div>
+              )}
+              <div className="space-y-2">
+                
+                  href={whatsappLink(
+                    (asignacionActiva.prospectos as any).telefono,
+                    `Hola ${(asignacionActiva.prospectos as any).nombre}, te contacto de Ferova Agency. ¿Tienes un momento?`
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center w-full bg-green-500 text-white py-3 rounded-xl text-sm font-medium"
+                >
+                  Contactar por WhatsApp
+                </a>
+                
+                  href={`/aliado/registrar-cierre?asignacion=${asignacionActiva.id}`}
+                  className="flex items-center justify-center w-full bg-gray-900 text-white py-3 rounded-xl text-sm font-medium"
+                >
+                  Registrar venta cerrada
+                </a>
+                
+                  href={`/aliado/no-cerrado?asignacion=${asignacionActiva.id}`}
+                  className="flex items-center justify-center w-full border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm"
+                >
+                  No pude cerrar este prospecto
+                </a>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="bg-white rounded-2xl p-6 border border-dashed border-gray-200 text-center">
             <p className="text-sm text-gray-400">No tienes prospectos asignados</p>
@@ -119,75 +168,5 @@ export default async function AliadorDashboard() {
         </div>
       )}
     </main>
-  )
-}
-
-function ProspectoCard({ asignacion, prospecto }: { asignacion: any; prospecto: any }) {
-  const waLink = whatsappLink(
-    prospecto.telefono,
-    `Hola ${prospecto.nombre}, te contacto de Ferova Agency. Nos interesa ayudarte con tu presencia digital. ¿Tienes un momento?`
-  )
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-      <div className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            <p className="font-semibold text-gray-900">{prospecto.nombre}</p>
-            {prospecto.empresa && (
-              <p className="text-sm text-gray-500">{prospecto.empresa}</p>
-            )}
-          </div>
-          <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
-            Activo
-          </span>
-        </div>
-
-        {prospecto.notas && (
-          <div className="bg-gray-50 rounded-xl p-3 mb-3">
-            <p className="text-xs text-gray-500 mb-1">Notas</p>
-            <p className="text-sm text-gray-700">{prospecto.notas}</p>
-          </div>
-        )}
-
-        <div className="space-y-2">
-          
-            href={waLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center w-full bg-green-500 text-white py-3 rounded-xl text-sm font-medium"
-          >
-            Contactar por WhatsApp
-          </a>
-          <button
-            className="w-full bg-gray-900 text-white py-3 rounded-xl text-sm font-medium"
-          >
-            Registrar venta cerrada
-          </button>
-          <NoCerradoButton asignacionId={asignacion.id} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function NoCerradoButton({ asignacionId }: { asignacionId: string }) {
-  async function handleClick() {
-    if (!confirm('¿Confirmas que no pudiste cerrar este prospecto? Se asignará a otro aliado.')) return
-    await fetch('/api/prospectos/reasignar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ asignacion_id: asignacionId }),
-    })
-    window.location.reload()
-  }
-
-  return (
-    <button
-      onClick={handleClick}
-      className="w-full border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm"
-    >
-      No pude cerrar este prospecto
-    </button>
   )
 }
