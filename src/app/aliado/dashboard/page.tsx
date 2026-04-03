@@ -113,15 +113,14 @@ export default async function AliadorDashboard() {
                 </a>
                 
                  href={whatsappLink(
-    (asignacionActiva.prospectos as any).telefono,
-    'Hola, te contacto de Ferova Agency. Tienes un momento?'
-  )}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="flex items-center justify-center w-full bg-green-500 text-white py-3 rounded-xl text-sm font-medium"
->
-  Contactar por WhatsApp
-</a>
+                 (asignacionActiva.prospectos as any).telefono,
+                 'Hola, te contacto de Ferova Agency. Tienes un momento?'
+                  )}
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 className="flex items-center justify-center w-full bg-green-500 text-white py-3 rounded-xl text-sm font-medium"
+                 Contactar por WhatsApp
+                </a>
               </div>
             </div>
           </div>
