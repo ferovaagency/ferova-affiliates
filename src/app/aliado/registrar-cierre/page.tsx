@@ -31,7 +31,7 @@ export default function RegistrarCierre() {
     })
     const data = await res.json()
     if (data.error) { alert("Error: " + data.error); setLoading(false); return }
-    alert("Venta registrada. El admin generara el link de pago y te avisamos.")
+    alert("Venta registrada correctamente.")
     router.push("/aliado/dashboard")
   }
 
@@ -44,7 +44,7 @@ export default function RegistrarCierre() {
           <select required value={form.servicio_id} onChange={e => setForm({...form, servicio_id: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm">
             <option value="">Selecciona un servicio</option>
             {servicios.map((s: any) => (
-              <option key={s.id} value={s.id}>{s.nombre} {s.precio_base ? "- $" + s.precio_base.toLocaleString("es-CO") : ""}</option>
+              <option key={s.id} value={s.id}>{s.nombre}</option>
             ))}
             <option value="otro">Otro servicio</option>
           </select>
@@ -58,7 +58,7 @@ export default function RegistrarCierre() {
         <div>
           <label className="block text-sm text-gray-700 mb-1">Valor acordado en COP *</label>
           <input required type="number" value={form.monto} onChange={e => setForm({...form, monto: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="3500000" />
-          {form.monto && (
+          {form.monto && Number(form.monto) > 0 && (
             <p className="text-xs text-green-600 mt-1">Tu comision: ${Math.round(Number(form.monto) * 0.20).toLocaleString("es-CO")}</p>
           )}
         </div>
@@ -71,7 +71,7 @@ export default function RegistrarCierre() {
           </div>
         </div>
         <div className="bg-amber-50 rounded-xl p-3">
-          <p className="text-xs text-amber-700">El admin revisara esta venta y generara el link de pago para el cliente. Te notificamos cuando este listo.</p>
+          <p className="text-xs text-amber-700">El admin revisara esta venta y generara el link de pago para el cliente.</p>
         </div>
         <button type="submit" disabled={loading} className="w-full bg-gray-900 text-white py-3 rounded-xl text-sm font-medium disabled:opacity-50">
           {loading ? "Registrando..." : "Registrar venta"}
