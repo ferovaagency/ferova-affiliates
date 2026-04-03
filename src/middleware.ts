@@ -6,9 +6,11 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (
+    pathname.startsWith("/_next") ||
     pathname.startsWith("/api/webhooks") ||
     pathname.startsWith("/ref/") ||
-    pathname.startsWith("/pago")
+    pathname.startsWith("/pago") ||
+    pathname === "/favicon.ico"
   ) {
     return response
   }
@@ -19,18 +21,20 @@ export async function middleware(request: NextRequest) {
     {
       cookies: {
         getAll: () => request.cookies.getAll(),
-        setAll: (cs) => cs.forEach(({ name, value, options }) => response.cookies.set(name, value, options)),
+        setAll: (cs) => cs.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options)
+        ),
       },
     }
   )
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (pathname.startsWith("/login")) {
-    if (user) {
-      if (user.email === process.env.ADMIN_EMAIL) {
-        return NextResponse.redirect(new URL("/admin/dashboard", request.url))
-      }
+  if (pathname === "/login") {
+    if (user && user.email === process.env.ADMIN_EMAIL) {
+      return NextResponse.redirect(new URL("/admin/dashboard", request.url))
+    }
+    if (user && user.email !== process.env.ADMIN_EMAIL) {
       return NextResponse.redirect(new URL("/aliado/dashboard", request.url))
     }
     return response
@@ -44,13 +48,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/aliado/dashboard", request.url))
   }
 
-  if (pathname.startsWith("/aliado") && user.email === process.env.ADMIN_EMAIL) {
-    return NextResponse.redirect(new URL("/admin/dashboard", request.url))
-  }
-
   return response
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/webhooks).*)"],
+  matcher: ["/login", "/admin/:path*", "/aliado/:path*"],
 }
