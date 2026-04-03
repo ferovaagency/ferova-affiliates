@@ -112,17 +112,16 @@ export default async function AliadorDashboard() {
                   Contactar por WhatsApp
                 </a>
                 
-                  href={`/aliado/registrar-cierre?asignacion=${asignacionActiva.id}`}
-                  className="flex items-center justify-center w-full bg-gray-900 text-white py-3 rounded-xl text-sm font-medium"
-                >
-                  Registrar venta cerrada
-                </a>
-                
-                  href={`/aliado/no-cerrado?asignacion=${asignacionActiva.id}`}
-                  className="flex items-center justify-center w-full border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm"
-                >
-                  No pude cerrar este prospecto
-                </a>
+                 href={whatsappLink(
+    (asignacionActiva.prospectos as any).telefono,
+    'Hola, te contacto de Ferova Agency. Tienes un momento?'
+  )}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="flex items-center justify-center w-full bg-green-500 text-white py-3 rounded-xl text-sm font-medium"
+>
+  Contactar por WhatsApp
+</a>
               </div>
             </div>
           </div>
