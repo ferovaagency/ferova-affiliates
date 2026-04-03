@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { adminClient } from '@/lib/supabase/admin'
 import { formatCOP } from '@/lib/utils'
 
