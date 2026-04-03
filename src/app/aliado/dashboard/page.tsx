@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { formatCOP, whatsappLink } from '@/lib/utils'
+import { formatCOP } from '@/lib/utils'
 
 export default async function AliadorDashboard() {
   const supabase = await createClient()
@@ -36,8 +36,9 @@ export default async function AliadorDashboard() {
   const totalGanado = comisiones
     ?.reduce((s, c) => s + c.monto_comision, 0) ?? 0
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL
-  const linkCompleto = `${appUrl}/ref/${aliado.link_referido}`
+  const prospecto = asignacionActiva?.prospectos as any
+  const telefono = prospecto?.telefono ?? ''
+  const waUrl = 'https://wa.me/57' + telefono.replace(/\D/g, '')
 
   return (
     <main className="min-h-screen bg-gray-50 p-4 max-w-lg mx-auto">
@@ -63,9 +64,11 @@ export default async function AliadorDashboard() {
         <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">
           Tu link de referido
         </p>
-        <p className="text-sm text-blue-600 font-mono truncate mb-2">{linkCompleto}</p>
+        <p className="text-sm text-blue-600 font-mono truncate mb-2">
+          {process.env.NEXT_PUBLIC_APP_URL}/ref/{aliado.link_referido}
+        </p>
         <p className="text-xs text-gray-400">
-          Compártelo — si alguien paga por aquí la comisión es tuya automáticamente
+          Comparte este link. Si alguien paga por aqui la comision es tuya automaticamente
         </p>
       </div>
 
@@ -73,55 +76,46 @@ export default async function AliadorDashboard() {
         <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">
           Prospecto asignado
         </p>
-        {asignacionActiva?.prospectos ? (
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <p className="font-semibold text-gray-900">
-                    {(asignacionActiva.prospectos as any).nombre}
-                  </p>
-                  {(asignacionActiva.prospectos as any).empresa && (
-                    <p className="text-sm text-gray-500">
-                      {(asignacionActiva.prospectos as any).empresa}
-                    </p>
-                  )}
-                </div>
-                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
-                  Activo
-                </span>
+        {prospecto ? (
+          <div className="bg-white rounded-2xl border border-gray-100 p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <p className="font-semibold text-gray-900">{prospecto.nombre}</p>
+                {prospecto.empresa && (
+                  <p className="text-sm text-gray-500">{prospecto.empresa}</p>
+                )}
               </div>
-              {(asignacionActiva.prospectos as any).notas && (
-                <div className="bg-gray-50 rounded-xl p-3 mb-3">
-                  <p className="text-xs text-gray-500 mb-1">Notas</p>
-                  <p className="text-sm text-gray-700">
-                    {(asignacionActiva.prospectos as any).notas}
-                  </p>
-                </div>
-              )}
-              <div className="space-y-2">
-                
-                  href={whatsappLink(
-                    (asignacionActiva.prospectos as any).telefono,
-                    `Hola ${(asignacionActiva.prospectos as any).nombre}, te contacto de Ferova Agency. ¿Tienes un momento?`
-                  )}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center w-full bg-green-500 text-white py-3 rounded-xl text-sm font-medium"
-                >
-                  Contactar por WhatsApp
-                </a>
-                
-                 href={whatsappLink(
-                 (asignacionActiva.prospectos as any).telefono,
-                 'Hola, te contacto de Ferova Agency. Tienes un momento?'
-                  )}
-                 target="_blank"
-                 rel="noopener noreferrer"
-                 className="flex items-center justify-center w-full bg-green-500 text-white py-3 rounded-xl text-sm font-medium"
-                 Contactar por WhatsApp
-                </a>
+              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                Activo
+              </span>
+            </div>
+            {prospecto.notas && (
+              <div className="bg-gray-50 rounded-xl p-3 mb-3">
+                <p className="text-xs text-gray-500 mb-1">Notas</p>
+                <p className="text-sm text-gray-700">{prospecto.notas}</p>
               </div>
+            )}
+            <div className="space-y-2">
+              
+                href={waUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-full bg-green-500 text-white py-3 rounded-xl text-sm font-medium"
+              >
+                Contactar por WhatsApp
+              </a>
+              
+                href={'/aliado/registrar-cierre?asignacion=' + asignacionActiva.id}
+                className="flex items-center justify-center w-full bg-gray-900 text-white py-3 rounded-xl text-sm font-medium"
+              >
+                Registrar venta cerrada
+              </a>
+              
+                href={'/aliado/no-cerrado?asignacion=' + asignacionActiva.id}
+                className="flex items-center justify-center w-full border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm"
+              >
+                No pude cerrar este prospecto
+              </a>
             </div>
           </div>
         ) : (
@@ -137,7 +131,7 @@ export default async function AliadorDashboard() {
       {comisiones && comisiones.length > 0 && (
         <div>
           <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">
-            Últimas comisiones
+            Ultimas comisiones
           </p>
           <div className="space-y-2">
             {comisiones.slice(0, 5).map(c => (
