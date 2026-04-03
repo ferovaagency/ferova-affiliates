@@ -9,39 +9,42 @@ export default async function AliadorDashboard() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
-  const { data: aliado } = await supabase
-    .from("aliados").select("*").eq("user_id", user.id).single()
+  const { data: aliadoData } = await supabase
+    .from("aliados").select("*").eq("user_id", user!.id).single()
+
+  const aliado = aliadoData as any
   if (!aliado) redirect("/login")
 
-  const aliadoId = aliado.id as string
-
-  const { data: asignacionActiva } = await supabase
+  const { data: asignacionData } = await supabase
     .from("asignaciones")
     .select("*, prospectos(*)")
-    .eq("aliado_id", aliadoId)
+    .eq("aliado_id", aliado.id)
     .eq("resultado", "activo")
     .order("fecha_asignacion", { ascending: false })
     .limit(1)
     .maybeSingle()
 
-  const { data: comisiones } = await supabase
+  const { data: comisionesData } = await supabase
     .from("comisiones")
     .select("*, ventas(descripcion_servicio, cliente_nombre)")
-    .eq("aliado_id", aliadoId)
+    .eq("aliado_id", aliado.id)
     .order("fecha_generacion", { ascending: false })
     .limit(20)
 
-  const pendiente = (comisiones as any[])
-    ?.filter((c: any) => c.estado === "pendiente")
-    .reduce((s: number, c: any) => s + c.monto_comision, 0) ?? 0
+  const asignacionActiva = asignacionData as any
+  const comisiones = (comisionesData ?? []) as any[]
 
-  const totalGanado = (comisiones as any[])
-    ?.reduce((s: number, c: any) => s + c.monto_comision, 0) ?? 0
+  const pendiente = comisiones
+    .filter((c: any) => c.estado === "pendiente")
+    .reduce((s: number, c: any) => s + c.monto_comision, 0)
 
-  const prospecto = (asignacionActiva as any)?.prospectos
+  const totalGanado = comisiones
+    .reduce((s: number, c: any) => s + c.monto_comision, 0)
+
+  const prospecto = asignacionActiva?.prospectos
   const telefono = prospecto?.telefono ?? ""
   const waUrl = "https://wa.me/57" + telefono.replace(/\D/g, "")
-  const asignacionId = (asignacionActiva as any)?.id ?? ""
+  const asignacionId = asignacionActiva?.id ?? ""
 
   return (
     <main className="min-h-screen bg-gray-50 p-4 max-w-lg mx-auto">
@@ -81,11 +84,11 @@ export default async function AliadorDashboard() {
           </div>
         )}
       </div>
-      {comisiones && (comisiones as any[]).length > 0 && (
+      {comisiones.length > 0 && (
         <div>
           <p className="text-xs text-gray-500 mb-2">Ultimas comisiones</p>
           <div className="space-y-2">
-            {(comisiones as any[]).slice(0, 5).map((c: any) => (
+            {comisiones.slice(0, 5).map((c: any) => (
               <div key={c.id} className="bg-white rounded-xl p-3 border border-gray-100 flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-900">{c.ventas?.cliente_nombre ?? "Cliente"}</p>
