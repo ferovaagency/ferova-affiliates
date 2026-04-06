@@ -6,7 +6,6 @@ export default function AliadorProspectos() {
   const [prospectos, setProspectos] = useState<any[]>([])
   const [filtroEstado, setFiltroEstado] = useState("")
   const [loading, setLoading] = useState(true)
-  const [aliado, setAliado] = useState<any>(null)
 
   useEffect(() => { cargarDatos() }, [])
 
@@ -15,18 +14,23 @@ export default function AliadorProspectos() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const { data: aliadoData } = await supabase.from("aliados").select("*").eq("user_id", user.id).single()
-    setAliado(aliadoData)
+
+    const { data: aliadoData } = await supabase
+      .from("aliados").select("id").eq("user_id", user.id).single()
+    if (!aliadoData) return
+
     const { data: asignaciones } = await supabase
       .from("asignaciones")
-      .select("*, prospectos(*)")
+      .select("id, resultado, fecha_asignacion, prospectos(id, nombre, empresa, telefono, email, notas, cargado_por)")
       .eq("aliado_id", aliadoData.id)
       .order("fecha_asignacion", { ascending: false })
+
     const todos = (asignaciones ?? []).map((a: any) => ({
       ...a.prospectos,
       asignacion_id: a.id,
       resultado: a.resultado,
     }))
+
     setProspectos(todos)
     setLoading(false)
   }
@@ -78,7 +82,11 @@ export default function AliadorProspectos() {
                   {p.email && <p className="text-xs text-gray-400">{p.email}</p>}
                   {p.notas && <p className="text-xs text-gray-500 mt-1 italic">{p.notas}</p>}
                 </div>
-                <span className={"text-xs px-2 py-1 rounded-full " + (p.resultado === "cerrado" ? "bg-green-50 text-green-700" : p.resultado === "no_cerrado" ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700")}>
+                <span className={"text-xs px-2 py-1 rounded-full " + (
+                  p.resultado === "cerrado" ? "bg-green-50 text-green-700" :
+                  p.resultado === "no_cerrado" ? "bg-red-50 text-red-700" :
+                  "bg-blue-50 text-blue-700"
+                )}>
                   {p.resultado === "cerrado" ? "Cerrado" : p.resultado === "no_cerrado" ? "No cerrado" : "Activo"}
                 </span>
               </div>
